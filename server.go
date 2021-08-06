@@ -6,6 +6,7 @@ import (
 	"gopkg.in/resty.v1"
 	"log"
 	"net/http"
+	"os"
 )
 
 func init() {
@@ -21,7 +22,12 @@ func main() {
 		w.Write([]byte("<h1>Welcome to my web server!</h1>"))
 	})
 
-	serverBind := ":8080"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	serverBind := ":" + port
 	log.Printf("Start server on %v", serverBind)
 	router := controller.CreateApi(mux.NewRouter(), &controllers)
 
