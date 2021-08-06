@@ -28,5 +28,5 @@ func main() {
 	if err := http.ListenAndServe(serverBind, router); err != nil {
 		log.Printf("server start error: %v", err.Error())
 	}
-	log.Printf("Successfully finished")
+	log.Printf("Server finished")
 }
