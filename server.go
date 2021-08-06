@@ -17,6 +17,10 @@ func main() {
 		MyController: &controller.MyController{},
 	}
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("<h1>Welcome to my web server!</h1>"))
+	})
+
 	serverBind := ":80"
 	log.Printf("Start server on %v", serverBind)
 	router := controller.CreateApi(mux.NewRouter(), &controllers)
