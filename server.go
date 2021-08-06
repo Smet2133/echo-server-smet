@@ -21,7 +21,7 @@ func main() {
 		w.Write([]byte("<h1>Welcome to my web server!</h1>"))
 	})
 
-	serverBind := ":80"
+	serverBind := ":8080"
 	log.Printf("Start server on %v", serverBind)
 	router := controller.CreateApi(mux.NewRouter(), &controllers)
 
