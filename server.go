@@ -8,7 +8,6 @@ import (
 	"net/http"
 )
 
-
 func init() {
 	resty.SetDisableWarn(true)
 }
@@ -18,14 +17,12 @@ func main() {
 		MyController: &controller.MyController{},
 	}
 
-	serverBind := "localhost:8080"
+	serverBind := ":80"
 	log.Printf("Start server on %v", serverBind)
 	router := controller.CreateApi(mux.NewRouter(), &controllers)
 
 	if err := http.ListenAndServe(serverBind, router); err != nil {
-		log.Printf(err.Error())
+		log.Printf("server start error: %v", err.Error())
 	}
 	log.Printf("Successfully finished")
 }
-
-
