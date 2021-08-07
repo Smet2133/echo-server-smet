@@ -2,7 +2,7 @@ package main
 
 import (
 	"echo-server-smet/controller"
-	"github.com/gorilla/mux"
+	gorillamux "github.com/gorilla/mux"
 	"gopkg.in/resty.v1"
 	"log"
 	"net/http"
@@ -18,10 +18,6 @@ func main() {
 		MyController: &controller.MyController{},
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("<h1>Welcome to my web server!</h1>"))
-	})
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -29,7 +25,7 @@ func main() {
 
 	serverBind := ":" + port
 	log.Printf("Start server on %v", serverBind)
-	router := controller.CreateApi(mux.NewRouter(), &controllers)
+	router := controller.CreateApi(gorillamux.NewRouter(), &controllers)
 
 	if err := http.ListenAndServe(serverBind, router); err != nil {
 		log.Printf("server start error: %v", err.Error())

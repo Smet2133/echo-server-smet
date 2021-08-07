@@ -6,17 +6,24 @@ import (
 	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
+
+	//"golang.org/x/net/websocket"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
-
-	"net/http"
 )
 
-type ApiControllers struct {
-	MyController      *MyController
+var myChan chan string
+
+func init() {
+	myChan = make(chan string)
 }
 
+type ApiControllers struct {
+	MyController *MyController
+}
 
 func CreateApi(r *mux.Router, controllers *ApiControllers) http.Handler {
 	register := func(method string, path string, handler http.HandlerFunc) {
@@ -30,7 +37,32 @@ func CreateApi(r *mux.Router, controllers *ApiControllers) http.Handler {
 	// rabbit api
 	register(http.MethodPost, "/echo", controllers.MyController.Echo)
 
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("<h1>Welcome to my web server!</h1>"))
+	})
+
+	r.HandleFunc("/websocket", echo)
+
 	return errorHandlerWrapper(r)
+}
+
+var upgrader = websocket.Upgrader{} // use default options
+
+func echo(w http.ResponseWriter, r *http.Request) {
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
+	}
+	defer c.Close()
+	for {
+		msg := <-myChan
+		err = c.WriteMessage(websocket.TextMessage, []byte(msg))
+		if err != nil {
+			log.Println("write:", err)
+			break
+		}
+	}
 }
 
 func errorHandlerWrapper(handler http.Handler) http.Handler {
@@ -48,7 +80,7 @@ func errorHandlerWrapper(handler http.Handler) http.Handler {
 
 func respondWithError(ctx context.Context, w http.ResponseWriter, code int, format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	log.Printf( msg)
+	log.Printf(msg)
 	respondWithJson(ctx, w, code, map[string]string{"error": msg})
 }
 
@@ -72,4 +104,3 @@ func respondWithJson(ctx context.Context, w http.ResponseWriter, code int, paylo
 		w.Write(response)
 	}
 }
-

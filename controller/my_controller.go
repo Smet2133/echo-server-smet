@@ -6,11 +6,11 @@ import (
 	"log"
 	"net/http"
 )
-type MyController struct {
 
+type MyController struct {
 }
 
-func (c *MyController) Echo(w http.ResponseWriter, r *http.Request) {
+func (cont *MyController) Echo(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 	// read request body to string
@@ -19,6 +19,8 @@ func (c *MyController) Echo(w http.ResponseWriter, r *http.Request) {
 	requestStr := buf.String()
 	log.Printf("Remote addr: %v", r.RemoteAddr)
 	log.Printf("Request body: %v", requestStr)
+
+	myChan <- requestStr
 
 	respondWithJson(context.Background(), w, http.StatusOK, "")
 }
