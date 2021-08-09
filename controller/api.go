@@ -20,6 +20,17 @@ import (
 var myChan chan string
 var chanMap map[string]chan string
 
+const (
+	// Time allowed to write a message to the peer.
+	writeWait = 60 * time.Minute
+
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 60 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+)
+
 func init() {
 	myChan = make(chan string)
 	chanMap = make(map[string]chan string)
@@ -68,12 +79,30 @@ func echoWebsocket(w http.ResponseWriter, r *http.Request) {
 	defer close(socketEchoChan)
 	defer delete(chanMap, id)
 
+	stdoutDone := make(chan struct{})
+	go ping(c, stdoutDone)
+
 	for {
 		msg := <-socketEchoChan
 		err = c.WriteMessage(websocket.TextMessage, []byte(msg))
 		if err != nil {
 			log.Println("write:", err)
 			break
+		}
+	}
+}
+
+func ping(ws *websocket.Conn, done chan struct{}) {
+	ticker := time.NewTicker(pingPeriod)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			if err := ws.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(writeWait)); err != nil {
+				log.Println("ping:", err)
+			}
+		case <-done:
+			return
 		}
 	}
 }
