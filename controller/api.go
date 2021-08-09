@@ -21,6 +21,7 @@ var chanMap map[string]chan string
 
 func init() {
 	myChan = make(chan string)
+	chanMap = make(map[string]chan string)
 }
 
 type ApiControllers struct {
