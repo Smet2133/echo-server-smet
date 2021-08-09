@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -16,6 +17,7 @@ import (
 )
 
 var myChan chan string
+var chanMap map[string]chan string
 
 func init() {
 	myChan = make(chan string)
@@ -35,28 +37,36 @@ func CreateApi(r *mux.Router, controllers *ApiControllers) http.Handler {
 	}
 
 	// rabbit api
-	register(http.MethodPost, "/echo", controllers.MyController.Echo)
+	register(http.MethodPost, "/echoWebsocket", controllers.MyController.Echo)
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("<h1>Welcome to my web server!</h1>"))
 	})
 
-	r.HandleFunc("/websocket", echo)
+	r.HandleFunc("/websocket", echoWebsocket)
 
 	return errorHandlerWrapper(r)
 }
 
 var upgrader = websocket.Upgrader{} // use default options
 
-func echo(w http.ResponseWriter, r *http.Request) {
+func echoWebsocket(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
 		return
 	}
 	defer c.Close()
+
+	id := uuid.New().String()
+	socketEchoChan := make(chan string)
+	chanMap[id] = socketEchoChan
+
+	defer close(socketEchoChan)
+	defer delete(chanMap, id)
+
 	for {
-		msg := <-myChan
+		msg := <-socketEchoChan
 		err = c.WriteMessage(websocket.TextMessage, []byte(msg))
 		if err != nil {
 			log.Println("write:", err)

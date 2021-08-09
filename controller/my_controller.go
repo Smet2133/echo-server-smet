@@ -20,7 +20,9 @@ func (cont *MyController) Echo(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Remote addr: %v", r.RemoteAddr)
 	log.Printf("Request body: %v", requestStr)
 
-	myChan <- requestStr
+	for _, channel := range chanMap {
+		channel <- requestStr
+	}
 
 	respondWithJson(context.Background(), w, http.StatusOK, "")
 }
