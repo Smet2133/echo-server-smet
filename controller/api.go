@@ -37,7 +37,7 @@ func CreateApi(r *mux.Router, controllers *ApiControllers) http.Handler {
 	}
 
 	// rabbit api
-	register(http.MethodPost, "/echoWebsocket", controllers.MyController.Echo)
+	register(http.MethodPost, "/echo", controllers.MyController.Echo)
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("<h1>Welcome to my web server!</h1>"))
