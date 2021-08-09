@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"time"
 
 	//"golang.org/x/net/websocket"
 	"log"
@@ -58,6 +59,7 @@ func echoWebsocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer c.Close()
+	c.SetWriteDeadline(time.Now().Add(time.Minute * 60))
 
 	id := uuid.New().String()
 	socketEchoChan := make(chan string)
